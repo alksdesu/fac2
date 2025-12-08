@@ -8,12 +8,15 @@
     "dev": "tsx --watch main.ts",
     "build": "tsc",
     "start": "node dist/main.js",
-    "start:dev": "tsx main.ts"
+    "start:dev": "tsx main.ts",
+    "bun": "bun run main.ts",
+    "bun:watch": "bun --watch run main.ts"
   },
   "dependencies": {
     "@types/node": "^20.10.0",
-    "dotenv": "^16.3.1",
-    "jimp": "^1.6.0"
+    "dotenv": "^16.6.1",
+    "jimp": "^1.6.0",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "tsx": "^4.6.2",

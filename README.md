@@ -11,30 +11,40 @@
 - **多模型支持**
   - Factory AI 模型（通过 OpenAI 端点）
   - Claude 系列模型（两个端点都支持）
-  - Bedrock 模型（自动识别并处理）
+  - Bedrock 模型（模型名包含 `bedrock` 前缀）
+  - Vertex 模型（模型名包含 `vertex` 前缀）
 
-- **特殊功能**
-  - Claude 思考模式：模型名包含 `-thinking` 后缀时自动启用（16k thinking tokens）
-  - 1M token context 支持（通过 anthropic-beta header）
+- **Claude 特性**
+  - 思考模式：模型名包含 `-thinking` 后缀时自动启用
+  - 搜索模式：模型名包含 `-search` 后缀启用 web_search 工具
+  - Opus 4.5：自动启用 effort=high 和扩展思考
+  - 提示词缓存：自动添加缓存断点
+  - 1M token context 支持
   - 流式响应支持
   - 多模态支持（文本和图片）
   - 工具调用支持（自动转换格式）
 
+- **API Key 管理**
+  - 多 Key 轮询
+  - 401/402 错误自动禁用并切换到下一个 Key
+
 ## 安装
 
-1. 克隆仓库
+1. 安装 Bun
 ```bash
-git clone <repository-url>
-cd fac2
+# Windows
+powershell -c "irm bun.sh/install.ps1 | iex"
+
+# macOS / Linux
+curl -fsSL https://bun.sh/install | bash
 ```
 
 2. 安装依赖
 ```bash
-npm install
+bun install
 ```
 
 3. 配置环境变量
-复制 `.env.example` 到 `.env` 并填写配置：
 ```bash
 cp .env.example .env
 ```
@@ -55,22 +65,12 @@ PROXY_KEY_HEADER=X-Proxy-Key
 
 # 代理端口（默认：8001）
 PROXY_PORT=8001
-
-# 调试上游请求（可选）
-DEBUG_UPSTREAM=true
 ```
 
 ## 运行
 
-### 开发模式
 ```bash
-npm run dev
-```
-
-### 生产模式
-```bash
-npm run build
-npm start
+bun run main.ts
 ```
 
 ## API 使用
@@ -82,45 +82,32 @@ npm start
 **请求示例**:
 ```json
 {
-  "model": "claude-3-5-sonnet-20241022",
+  "model": "claude-sonnet-4-5-thinking",
   "messages": [
     {"role": "user", "content": "Hello!"}
   ],
-  "stream": false,
-  "max_tokens": 1000
+  "stream": true,
+  "max_tokens": 4096
 }
 ```
 
-**支持的特性**:
-- 思考模式：使用 `claude-3-5-sonnet-20241022-thinking` 模型名
-- 文件上传：支持 multipart/form-data 格式
-- 工具调用：OpenAI 格式的 tools 会自动转换为 Claude 格式
+**模型名示例**:
+- `claude-sonnet-4-5` - 标准模式
+- `claude-sonnet-4-5-thinking` - 启用思考模式
+- `claude-opus-4-5-search` - 启用搜索工具
+- `bedrock-claude-3-5-sonnet-20241022` - Bedrock 模型
+- `vertex-claude-3-5-sonnet-20241022` - Vertex 模型
 
 ### Claude 原生格式端点
 
 **端点**: `POST http://localhost:8001/v1/messages`
 
-**请求示例**:
-```json
-{
-  "model": "claude-3-5-sonnet-20241022",
-  "messages": [
-    {"role": "user", "content": "Hello!"}
-  ],
-  "max_tokens": 1000,
-  "system": "You are a helpful assistant"
-}
-```
-
-**特性**:
-- 直接支持 Claude 原生请求格式
-- 保留所有原始功能（tools、thinking 等）
-- 自动过滤 Claude Code 的特定系统提示词（"You are Claude Code..." 和 "You are an interactive CLI..."）
+直接支持 Claude 原生请求格式，保留所有原始功能。
 
 ## 认证方式
 
 1. **使用自己的 API Key**
-   ```bash
+   ```
    Authorization: Bearer your-api-key
    ```
 
@@ -128,26 +115,6 @@ npm start
    - 不提供 Authorization header，系统会自动轮询使用配置的密钥
 
 3. **使用代理访问密钥**（如果配置了 PROXY_ACCESS_KEYS）
-   ```bash
-   X-Proxy-Key: your-proxy-key
-   # 或
-   Authorization: Bearer your-proxy-key
    ```
-
-
-## 工具脚本
-
-- `factory.ps1` - 检查 Factory API 密钥使用情况
-
-## 注意事项
-
-1. **安全性**：请妥善保管 API 密钥，不要将包含真实密钥的 `.env` 文件提交到版本控制系统
-2. **合规性**：本项目通过注入特定系统提示词来绕过某些限制，请合理使用
-3. **错误处理**：如遇到 403 错误，可能是系统提示词被检测，请检查日志中的提示词内容
-4. **Claude Code 兼容性**：原生格式端点会自动过滤 Claude Code 的系统提示词，避免与 Factory AI 的限制冲突
-
-## 技术栈
-
-- TypeScript
-- Node.js (原生 HTTP 模块)
-- ESM 模块系统
+   X-Proxy-Key: your-proxy-key
+   ```

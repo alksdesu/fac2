@@ -7,6 +7,7 @@
 .DS_Store
 Thumbs.db
 desktop.ini
+nul
 
 # 编辑器和IDE
 .vscode/
@@ -52,18 +53,23 @@ coverage/
 .cache/
 *.cache
 
-# Deno 相关
-.deno/
-deno.lock
+# Bun
+bun.lockb
+
+# Claude
+.claude/
 
 # 备份文件
 *.bak
 *.backup
-*~
 
 # 压缩文件
 *.zip
 *.tar.gz
 *.rar
+
+# 其他
 *.ps1
 *.local.json
+*.md
+!README.md
